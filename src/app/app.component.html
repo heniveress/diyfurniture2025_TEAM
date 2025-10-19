@@ -1,0 +1,19 @@
+<header>
+  <mat-toolbar id="app-header-toolbar">
+    <button mat-button [matMenuTriggerFor]="menu">Menu</button>
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item routerLink="draw">Draw</button>
+      <button mat-menu-item routerLink="view">3D View</button>
+      <button mat-menu-item routerLink="bill">Bill of Materials</button>
+    </mat-menu>
+  </mat-toolbar>
+</header>
+
+<main>
+  <router-outlet></router-outlet>
+</main>
+<footer layout="row" class="md-padding">
+  <div>
+    <p>I am Sticky!</p>
+  </div>
+</footer>

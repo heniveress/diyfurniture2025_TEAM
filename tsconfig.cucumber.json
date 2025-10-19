@@ -1,0 +1,31 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2019",
+    "outDir": "./out-tsc/cucumber",
+    "types": ["node"],
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@angular/core": ["features/shims/angular/core"],
+      "@angular/common": ["features/shims/angular/common"],
+      "@angular/material/select": ["features/shims/angular/material/select"],
+      "src/app/furnituremodel/furnituremodel.service": ["features/shims/app/furnituremodel/furnituremodel.service"],
+      "@angular/*": ["features/shims/angular/core"]
+    }
+  },
+  "include": [
+    "features/**/*.ts",
+    "features/**/*.d.ts",
+    "src/app/draw2d/draw2d.component.ts",
+    "src/app/draw2d/lib/**/*.ts",
+    "src/app/furnituremodel/furnituremodels.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "out-tsc"
+  ]
+}

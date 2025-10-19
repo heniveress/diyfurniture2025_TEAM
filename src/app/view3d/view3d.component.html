@@ -1,0 +1,25 @@
+<mat-toolbar>
+  <mat-button-toggle-group #group="matButtonToggleGroup" name="action" value="crop_square" aria-label="Draw Tool">
+    <mat-button-toggle value="crop_square">
+      <mat-icon>view_compact</mat-icon>
+    </mat-button-toggle>
+    <mat-button-toggle value="select" aria-label="Text align left">
+      <mat-icon>select_all</mat-icon>
+    </mat-button-toggle>
+    <mat-button-toggle value="split_rectangle_vertical" aria-label="Text align left">
+      <mat-icon>vertical_split</mat-icon>
+    </mat-button-toggle>
+    <mat-button-toggle value="split_rectangle_horizontal" aria-label="Text align left">
+      <mat-icon>horizontal_split</mat-icon>
+    </mat-button-toggle>
+    <mat-button-toggle value="move" aria-label="Text align left">
+      <mat-icon>open_with</mat-icon>
+    </mat-button-toggle>
+  </mat-button-toggle-group>
+</mat-toolbar>
+<mat-sidenav-container>
+  <mat-sidenav-content>
+    <canvas #canvas id="treeview" class="canv"></canvas>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
