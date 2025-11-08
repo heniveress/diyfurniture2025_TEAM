@@ -1,9 +1,11 @@
 import { FurnituremodelModule } from './furnituremodel/furnituremodel.module';
 import { View3DModule } from './view3d/view3d.module';
 import { Draw2dModule } from './draw2d/draw2d.module';
+import { ProjectModule } from './project/project.module';
 import { MaterialModule } from './material.module';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule } from '@angular/common/http';
 import { provideNgxWebstorage, withLocalStorage, withSessionStorage, withNgxWebstorageConfig } from 'ngx-webstorage';
 
 import { AppComponent } from './app.component';
@@ -18,11 +20,13 @@ import { BillofmaterialsComponent } from './billofmaterials/billofmaterials.comp
   ],
   imports: [
     BrowserModule,
+    HttpClientModule,
     MaterialModule,
     AppRoutingModule,
     Draw2dModule,
     View3DModule,
-    FurnituremodelModule
+    FurnituremodelModule,
+    ProjectModule
   ],
   providers: [
     FurnituremodelService,
