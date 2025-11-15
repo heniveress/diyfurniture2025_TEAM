@@ -1,19 +1,17 @@
-FROM node:18-alpine AS builder
-WORKDIR /app
-
-# copy package manifests first to leverage layer cache
-COPY package*.json ./
-RUN npm ci --silent
-
-# copy rest of the source and build
-COPY . .
-# build production bundle (adjust flags if your project uses different build target)
-RUN npm run build -- --configuration production \
-  && mkdir -p /app/dist_out \
-  && cp -a /app/dist/* /app/dist_out/
-
+# Use official Nginx image
 FROM nginx:alpine
-# copy built app into nginx html root
-COPY --from=builder /app/dist_out/ /usr/share/nginx/html
-EXPOSE 8080
+
+# Remove default nginx website
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy built Angular app to Nginx's public folder
+COPY ./dist/diyfurniture/browser /usr/share/nginx/html
+
+# Copy custom Nginx config (optional)
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
