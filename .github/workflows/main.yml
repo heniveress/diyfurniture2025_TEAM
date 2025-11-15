@@ -70,18 +70,6 @@ jobs:
             ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}/${{ steps.name.outputs.image_name }}:latest
           platforms: linux/amd64
 
-      - name: Render Kubernetes deployment with pushed image
-        run: |
-          mkdir -p k8s/rendered
-          sed "s|IMAGE_PLACEHOLDER|${{ steps.image.outputs.full }}|g" k8s/deployment.yaml > k8s/rendered/deployment.yaml
-          cp k8s/service.yaml k8s/rendered/service.yaml
-
-      - name: Upload rendered k8s manifests as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: k8s-manifests
-          path: k8s/rendered/
-
       - name: Print pushed image
         run: |
           echo "Pushed image: ${{ steps.image.outputs.full }}"
