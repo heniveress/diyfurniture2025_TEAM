@@ -95,9 +95,32 @@ export class Draw2DSupportService {
     this.cx.translate(x, y);
   }
 
-  public drawRectangle(rectangle: Rectangle):void {
+  public drawRectangle(rectangle: Rectangle): void {
+    const element = rectangle as any;
+    const materialColor = this.getMaterialColor(element.material);
+
     this.cx.beginPath();
-    this.cx.strokeRect(rectangle.posX,rectangle.posY,rectangle.width,rectangle.height);
-    this.cx.stroke();
+    this.cx.strokeStyle = (materialColor && materialColor !== 'transparent') ? materialColor : '#000';
+    this.cx.lineWidth = 3;
+    this.cx.strokeRect(rectangle.posX, rectangle.posY, rectangle.width, rectangle.height);
+  }
+
+  private getMaterialColor(material: string | undefined): string {
+    switch(material) {
+      case 'oak': return '#8b4513';
+      case 'pine': return '#deb887';
+      case 'beech': return '#cd853f';
+      case 'walnut': return '#5d3a1a';
+      case 'maple': return '#f4a460';
+
+      case 'white': return '#ffffff';
+      case 'antracite': return '#2f4f4f';
+      case 'lightgray': return '#d3d3d3';
+      case 'black': return '#1a1a1a';
+
+      default: return 'transparent';
+    }
   }
 }
+
+

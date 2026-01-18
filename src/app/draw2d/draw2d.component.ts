@@ -87,11 +87,16 @@ export class Draw2dComponent implements AfterViewInit {
   }
 
   public changeBodyDetails(): void {
-    if(this._selectedElementBody!=null) {
+    if (this._selectedElementBody != null) {
+      if (this.selectedElement && this.selectedElement.origin) {
+        this.selectedElement.origin.material = this._selectedElementBody.material;
+      }
       this.modelManager.refresh(this._selectedElementBody as FurnitureElement);
     }
+    
     this.drawRectangles();
   }
+
 
   public onSelectedElementSizeChanged(): void {
     if (!this._selectedElement) {
@@ -217,6 +222,8 @@ export class Draw2dComponent implements AfterViewInit {
       }
       this.selectedFrontTypes = FurnitureElementType[event.furnitureType].toString().toLocaleLowerCase();
       this._selectedElementBody = this.modelManager.findBody(event.origin);
+
+      console.log('Selected material from model:', this._selectedElementBody?.material);
     });
 
     fromEvent<MouseEvent>(canvasEl, 'mousemove').subscribe((event) => {

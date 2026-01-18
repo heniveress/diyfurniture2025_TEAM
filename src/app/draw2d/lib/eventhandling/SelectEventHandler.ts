@@ -32,6 +32,6 @@ export class SelectEventHandler extends EventHandler {
 function convertElement(selectedElement: FurnitureElement | null) {
   if(selectedElement==null)
     return null;
-  return new SelectedFurniture(selectedElement,selectedElement.posX,selectedElement.posY,selectedElement.width,selectedElement.height,600,18,selectedElement.type);
+  return new SelectedFurniture(selectedElement,selectedElement.posX,selectedElement.posY,selectedElement.width,selectedElement.height,600,18,selectedElement.type, selectedElement.material);
 }
 
