@@ -70,83 +70,62 @@ export class MoveEventHandler extends EventHandler {
   }
 
   public onMove(xPrev: number, yPrev: number, x: number, y: number): void {
-    console.log('[MOVE] onMove called:', { xPrev, yPrev, x, y, isDragging: this.isDragging, selectedSplit: !!this.selectedSplit, selectedElement: !!this.selectedElement });
+    console.log('[MOVE] onMove called:', { xPrev, yPrev, x, y, isDragging: this.isDragging });
+
+    const gridSize = 3;
 
     if (this.selectedSplit && this.isDragging) {
-      // Handle split line movement
       const deltaX = x - this.dragStartX;
       const deltaY = y - this.dragStartY;
-      console.log('[MOVE] Moving split, deltas:', { deltaX, deltaY });
 
       if (this.selectedSplit.split instanceof HorizontalSplit) {
-        // Move horizontal split line vertically
+        let rawPosition = this.originalSplitPosition + deltaY;
         const newPosition = Math.max(5, Math.min(
           this.selectedSplit.element.height - 5,
-          this.originalSplitPosition + deltaY
+          Math.round(rawPosition / gridSize) * gridSize
         ));
-        console.log('[MOVE] Moving horizontal split from', this.originalSplitPosition, 'to', newPosition);
+        
         this.selectedSplit.split.relativePositionY = newPosition;
 
-        // Update child element positions and sizes
         const split = this.selectedSplit.split;
         const element = this.selectedSplit.element;
-
-        // Top element gets taller/shorter based on split movement
         split.topElement.height = newPosition;
-        split.topElement.posY = 0;
-
-        // Bottom element position and height adjusted
         split.bottomElement.posY = newPosition;
         split.bottomElement.height = element.height - newPosition;
 
-        // Ensure widths follow parent and are aligned to left
-        split.topElement.width = element.width;
-        split.bottomElement.width = element.width;
-        split.topElement.posX = 0;
-        split.bottomElement.posX = 0;
       } else if (this.selectedSplit.split instanceof VerticalSplit) {
-        // Move vertical split line horizontally
+        let rawPosition = this.originalSplitPosition + deltaX;
         const newPosition = Math.max(5, Math.min(
           this.selectedSplit.element.width - 5,
-          this.originalSplitPosition + deltaX
+          Math.round(rawPosition / gridSize) * gridSize
         ));
-        console.log('[MOVE] Moving vertical split from', this.originalSplitPosition, 'to', newPosition);
+
         this.selectedSplit.split.relativePositionX = newPosition;
 
-        // Update child element positions and sizes
         const split = this.selectedSplit.split;
         const element = this.selectedSplit.element;
-
-        // Left element gets wider/narrower based on split movement
         split.leftElement.width = newPosition;
-        split.leftElement.posX = 0;
-        split.leftElement.height = element.height;
-
-        // Right element position and width need to be adjusted
         split.rightElement.posX = newPosition;
         split.rightElement.width = element.width - newPosition;
-        split.rightElement.height = element.height;
       }
 
-      // Normalize subtree to ensure nested elements resize to parent
       this.normalizeLayout(this.selectedSplit.element);
-      // Update the model to reflect the changes
       this.modelManager.refresh(this.selectedSplit.element);
       this.drawSupport.drawExistingElements();
+
     } else if (this.selectedElement && this.isDragging) {
-      // Handle furniture body movement only
       const deltaX = x - this.dragStartX;
       const deltaY = y - this.dragStartY;
-      console.log('[MOVE] Moving furniture BODY, deltas:', { deltaX, deltaY });
 
-      // Update the body's position; child elements remain attached via relative coordinates
-      this.selectedElement.posX = this.originalElementX + deltaX;
-      this.selectedElement.posY = this.originalElementY + deltaY;
+      let newPosX = this.originalElementX + deltaX;
+      let newPosY = this.originalElementY + deltaY;
+
+      this.selectedElement.posX = Math.round(newPosX / gridSize) * gridSize;
+      this.selectedElement.posY = Math.round(newPosY / gridSize) * gridSize;
 
       this.drawSupport.drawExistingElements();
+
     } else if (!this.selectedElement && !this.selectedSplit) {
-      // Page translation when no element is selected
-      console.log('[MOVE] Page translation');
       this.drawSupport.translatePage(xPrev - x, yPrev - y);
       this.drawSupport.drawExistingElements();
     }

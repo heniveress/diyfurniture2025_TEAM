@@ -59,7 +59,10 @@ export class Draw2DSupportService {
   public drawExistingElements(): void {
     this.cx.beginPath();
     var size = this.toCanvas(this.cx.canvas.width, this.cx.canvas.height);
-    this.cx.clearRect(-599, -599, size.x * 10, size.y * 10);
+    this.cx.clearRect(-2000, -2000, size.x * 30, size.y * 30);
+
+    this.drawGrid(this.cx.canvas.width, this.cx.canvas.height);
+
     for (var furnitureBody of this.modelManager.getViewFurnitures()) {
       furnitureBody.draw(0,0,this);
     }
@@ -152,6 +155,29 @@ export class Draw2DSupportService {
     this.cx.fillText(heightText, 0, 0);
     this.cx.restore();
 
+    this.cx.restore();
+  }
+
+  public drawGrid(width: number, height: number): void {
+    const smallGrid = 10;
+    const largeGrid = 50;
+    
+    this.cx.save();
+    const start = this.toCanvas(-2000, -2000);
+    const end = this.toCanvas(4000, 4000);
+
+    for (let x = Math.round(start.x / smallGrid) * smallGrid; x < end.x; x += smallGrid) {
+      for (let y = Math.round(start.y / smallGrid) * smallGrid; y < end.y; y += smallGrid) {
+        
+        if (x % largeGrid === 0 && y % largeGrid === 0) {
+          this.cx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          this.cx.fillRect(x, y, 2, 2);
+        } else {
+          this.cx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+          this.cx.fillRect(x, y, 1, 1);
+        }
+      }
+    }
     this.cx.restore();
   }
 }
