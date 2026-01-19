@@ -25,10 +25,12 @@
     </button>
   </div>
 </mat-toolbar>
+
 <mat-sidenav-container>
   <mat-sidenav-content>
     <canvas #canvas class="canv"></canvas>
   </mat-sidenav-content>
+
   <mat-sidenav position="end" opened mode="side" id="property-size">
     @if (selectedElement) {
       <form class="property-form">
@@ -50,6 +52,7 @@
         </mat-form-field>
       </form>
     }
+
     @if (selectedElementBody) {
       <form class="property-form">
         <mat-form-field class="property-field" appearance="fill">
@@ -76,6 +79,25 @@
           </mat-select>
         </mat-form-field>
       </form>
+    }
+
+    @if (selectedElement) {
+      <mat-divider style="margin: 10px 0;"></mat-divider>
+      
+      <div class="property-form">
+        <h5 style="padding: 0 16px; margin-bottom: 8px; color: rgba(255,255,255,0.7); font-size: 14px;">Shelf generator</h5>
+        
+        <mat-form-field class="property-field" appearance="fill">
+          <mat-label class="lbl">Number of shelves:</mat-label>
+          <input matInput #shelfCountInput type="number" value="1" min="1" max="10">
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" 
+                style="margin: 8px 16px 24px 16px; height: 45px;"
+                (click)="onGenerateShelves(shelfCountInput.value)">
+          Generate Shelves
+        </button>
+      </div>
     }
   </mat-sidenav>
 </mat-sidenav-container>

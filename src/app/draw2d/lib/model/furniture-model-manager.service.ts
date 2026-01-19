@@ -494,6 +494,35 @@ export class FurnitureModelManagerService {
     }
     return null;
   }
+
+  public generateShelves(element: FurnitureElement, shelfCount: number): void {
+    if(!element || shelfCount <= 0) return;
+
+    let currentParent = element;
+
+    for(let i = 0; i < shelfCount; i++) {
+      const remainingSections = shelfCount - i + 1;
+      const splitPos = currentParent.height / remainingSections;
+
+      const snappedPos = Math.round(splitPos / 3) * 3;
+
+      const topElem = new FurnitureElement(
+        0, 0, currentParent.width, snappedPos, currentParent.type, currentParent
+      );
+      
+      const bottomHeight = currentParent.height - snappedPos;
+      const bottomElem = new FurnitureElement(
+        0, snappedPos, currentParent.width, bottomHeight, currentParent.type, currentParent
+      );
+
+      const horizontalSplit = new HorizontalSplit(snappedPos, topElem, bottomElem);
+      currentParent.split = horizontalSplit;
+
+      currentParent = horizontalSplit.bottomElement;
+    }
+
+    this.refresh(element);
+  }
 }
 function convertElem(arg0: any) {
   throw new Error('Function not implemented.');

@@ -405,4 +405,12 @@ export class Draw2dComponent implements AfterViewInit {
     // Redraw everything to clear any highlights
     this.drawRectangles();
   }
+
+  public onGenerateShelves(count: string): void {
+    const shelfCount = parseInt(count, 10);
+    if(this.selectedElement && shelfCount > 0) {
+      this.modelManager.generateShelves(this.selectedElement.origin, shelfCount);
+      this.drawRectangles();
+    }
+  }
 }
