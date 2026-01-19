@@ -305,10 +305,14 @@ export class Draw2dComponent implements AfterViewInit {
   public onDrawActionChange(value: string): void {
     this.figureType = value;
     this.eventHandler.actionType = this.figureType;
+
+    this.drawRectangles();
   }
 
   public drawRectangles(): void {
-    this.drawSupport.drawExistingElements();
+    const isMoveMode = this.figureType === 'move';
+
+    this.drawSupport.drawExistingElements(isMoveMode);
 
     if (this.selectedElement) {
       const rect: Rectangle = {
@@ -399,6 +403,6 @@ export class Draw2dComponent implements AfterViewInit {
 
   private clearHighlight(): void {
     // Redraw everything to clear any highlights
-    this.drawSupport.drawExistingElements();
+    this.drawRectangles();
   }
 }

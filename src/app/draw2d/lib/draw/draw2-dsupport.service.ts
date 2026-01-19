@@ -56,12 +56,14 @@ export class Draw2DSupportService {
     this.selectedElement$?.next(element);
   }
 
-  public drawExistingElements(): void {
+  public drawExistingElements(showGrid: boolean = false): void {
     this.cx.beginPath();
     var size = this.toCanvas(this.cx.canvas.width, this.cx.canvas.height);
     this.cx.clearRect(-2000, -2000, size.x * 30, size.y * 30);
 
-    this.drawGrid(this.cx.canvas.width, this.cx.canvas.height);
+    if(showGrid) {
+      this.drawGrid(this.cx.canvas.width, this.cx.canvas.height);
+    }
 
     for (var furnitureBody of this.modelManager.getViewFurnitures()) {
       furnitureBody.draw(0,0,this);
