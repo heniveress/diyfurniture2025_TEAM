@@ -18,6 +18,10 @@
   </mat-button-toggle-group>
 
   <div class="draw-action-buttons">
+    <button mat-icon-button (click)="toggleTheme()" [title]="isDark ? 'Light Mode' : 'Dark Mode'">
+      <mat-icon>{{ isDark ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
+
     <button mat-icon-button (click)="exportPlan()" title="Export as PNG">
       <mat-icon>save_alt</mat-icon>
     </button>

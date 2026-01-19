@@ -418,4 +418,13 @@ export class Draw2dComponent implements AfterViewInit {
     this.drawSupport.exportAsImage(`furniture-plan${new Date().getTime()}.png`);
     this.drawRectangles();
   }
+
+  public get isDark(): boolean {
+    return this.drawSupport.isDarkMode;
+  }
+
+  public toggleTheme(): void {
+    this.drawSupport.toggleTheme();
+    this.drawRectangles();
+  }
 }

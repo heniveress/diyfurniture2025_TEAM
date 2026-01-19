@@ -21,6 +21,8 @@ export class Draw2DSupportService {
   private _selectedElement: SelectedFurniture | null = null;
 //  private _modelManager: FurnitureModelManagerService | null = null;
 
+  private _isDarkMode: boolean = true;
+
   public set selectedElement(elem: SelectedFurniture | null) {
     this._selectedElement = elem;
   }
@@ -37,6 +39,14 @@ export class Draw2DSupportService {
     return this._canvas == null ? new HTMLCanvasElement() : this._canvas;
   }
 
+  public get isDarkMode(): boolean {
+    return this._isDarkMode;
+  }
+
+  public toggleTheme(): void {
+    this._isDarkMode = !this._isDarkMode;
+  }
+
   setCanvas(canvas: HTMLCanvasElement): void {
     this._canvas = canvas;
     this._cx = canvas.getContext('2d');
@@ -45,7 +55,7 @@ export class Draw2DSupportService {
   init(selectedElement$ : BehaviorSubject<SelectedFurniture | null>) {
     this.cx.lineWidth = 1;
     this.cx.lineCap = 'round';
-    this.cx.strokeStyle = '#000';
+    this.cx.strokeStyle = this._isDarkMode ? '#fff' : '#000';
     this.selectedElement$ = selectedElement$;
     selectedElement$.subscribe((event)=>{
       this._selectedElement = event;
@@ -57,16 +67,19 @@ export class Draw2DSupportService {
   }
 
   public drawExistingElements(showGrid: boolean = false): void {
-    this.cx.beginPath();
-    var size = this.toCanvas(this.cx.canvas.width, this.cx.canvas.height);
-    this.cx.clearRect(-2000, -2000, size.x * 30, size.y * 30);
+    this.cx.save();
+    this.cx.setTransform(1, 0, 0, 1, 0, 0);
+    
+    this.cx.fillStyle = this._isDarkMode ? '#2c2c2c' : '#ffffff';
+    this.cx.fillRect(0, 0, this.cx.canvas.width, this.cx.canvas.height);
+    this.cx.restore();
 
-    if(showGrid) {
+    if (showGrid) {
       this.drawGrid(this.cx.canvas.width, this.cx.canvas.height);
     }
 
     for (var furnitureBody of this.modelManager.getViewFurnitures()) {
-      furnitureBody.draw(0,0,this);
+      furnitureBody.draw(0, 0, this);
     }
   }
 
@@ -103,9 +116,11 @@ export class Draw2DSupportService {
   public drawRectangle(rectangle: Rectangle): void {
     const element = rectangle as any;
     const materialColor = this.getMaterialColor(element.material);
+    
+    const defaultStrokeColor = this._isDarkMode ? '#ffffff' : '#000000';
 
     this.cx.beginPath();
-    this.cx.strokeStyle = (materialColor && materialColor !== 'transparent') ? materialColor : '#000';
+    this.cx.strokeStyle = (materialColor && materialColor !== 'transparent') ? materialColor : defaultStrokeColor;
     this.cx.lineWidth = 3;
     this.cx.strokeRect(rectangle.posX, rectangle.posY, rectangle.width, rectangle.height);
   }
@@ -123,7 +138,7 @@ export class Draw2DSupportService {
       case 'lightgray': return '#d3d3d3';
       case 'black': return '#1a1a1a';
 
-      default: return 'transparent';
+      default: return '#000';
     }
   }
 
@@ -168,14 +183,16 @@ export class Draw2DSupportService {
     const start = this.toCanvas(-2000, -2000);
     const end = this.toCanvas(4000, 4000);
 
+    const dotColor = this._isDarkMode ? '255, 255, 255' : '0, 0, 0';
+
     for (let x = Math.round(start.x / smallGrid) * smallGrid; x < end.x; x += smallGrid) {
       for (let y = Math.round(start.y / smallGrid) * smallGrid; y < end.y; y += smallGrid) {
-        
+
         if (x % largeGrid === 0 && y % largeGrid === 0) {
-          this.cx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          this.cx.fillStyle = `rgba(${dotColor}, 0.5)`;
           this.cx.fillRect(x, y, 2, 2);
         } else {
-          this.cx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+          this.cx.fillStyle = `rgba(${dotColor}, 0.15)`;
           this.cx.fillRect(x, y, 1, 1);
         }
       }
