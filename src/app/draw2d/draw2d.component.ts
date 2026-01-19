@@ -212,18 +212,21 @@ export class Draw2dComponent implements AfterViewInit {
     }
     return 'default';
   }
+
   public captureEvents(canvasEl: HTMLCanvasElement): void {
     this.selectedElement$.subscribe((event) => {
       this._selectedElement = event;
       if (event == null) {
         this._selectedElementBody = null;
         this.selectedFrontTypes = undefined;
+        this.drawRectangles();
         return;
       }
+      
       this.selectedFrontTypes = FurnitureElementType[event.furnitureType].toString().toLocaleLowerCase();
       this._selectedElementBody = this.modelManager.findBody(event.origin);
 
-      console.log('Selected material from model:', this._selectedElementBody?.material);
+      this.drawRectangles(); 
     });
 
     fromEvent<MouseEvent>(canvasEl, 'mousemove').subscribe((event) => {
@@ -232,37 +235,17 @@ export class Draw2dComponent implements AfterViewInit {
       var posY = event.clientY - rect.top;
       var a = this.toWorld(posX, posY);
 
-      this.debugLog('Mouse move event:', {
-        clientX: event.clientX,
-        clientY: event.clientY,
-        canvasX: posX,
-        canvasY: posY,
-        worldX: a.x,
-        worldY: a.y,
-        figureType: this.figureType
-      });
-
-      // Check for split lines first (in move mode)
       if (this.figureType === 'move') {
         var split = this.modelManager.findSelectedSplit(a.x, a.y);
-        this.debugLog('Split detection result:', split);
         if (split != null && this.canvas && this.canvas.nativeElement) {
-          this.debugLog('Split found, setting cursor');
           const cursorType = split.split instanceof HorizontalSplit ? 'n-resize' : 'w-resize';
-          this.debugLog('Setting cursor to:', cursorType);
-          try {
-            this.canvas.nativeElement.style.cursor = cursorType;
-            this.debugLog('Cursor set successfully to:', this.canvas.nativeElement.style.cursor);
-          } catch (error) {
-            this.debugLog('Error setting cursor:', error);
-          }
+          this.canvas.nativeElement.style.cursor = cursorType;
           this.highlightSplit(split);
           return;
         }
       }
 
       var elem = this.modelManager.findSelectedElement(a.x, a.y);
-      this.debugLog('Element detection result:', elem);
       if (elem == null && this.canvas != undefined) {
         this.canvas.nativeElement.style.cursor = 'default';
         this.clearHighlight();
@@ -275,16 +258,20 @@ export class Draw2dComponent implements AfterViewInit {
         }
       }
     });
+
     this.eventTranslate.mouseEvents$.subscribe(
       (event: DiyFurnitureMouseEvent) => {
         this.eventHandler.onEvent(event);
+        
+        this.drawRectangles(); 
       }
     );
 
     this.modelEvent.subject$.subscribe((ev) => {
-      this.drawSupport.drawExistingElements();
+      this.drawRectangles();
     });
   }
+
   public ngOnChanges(changes: SimpleChanges): void {
     for (const propName in changes) {
       if (changes.hasOwnProperty(propName)) {
@@ -322,6 +309,16 @@ export class Draw2dComponent implements AfterViewInit {
 
   public drawRectangles(): void {
     this.drawSupport.drawExistingElements();
+
+    if (this.selectedElement) {
+      const rect: Rectangle = {
+        posX: this.selectedElement.origin.absoluteX,
+        posY: this.selectedElement.origin.absoluteY,
+        width: this.selectedElement.width,
+        height: this.selectedElement.height
+      };
+      this.drawSupport.drawDimensions(rect);
+    }
   }
 
   public deleteSelectedElement(): void {

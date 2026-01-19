@@ -121,6 +121,39 @@ export class Draw2DSupportService {
       default: return 'transparent';
     }
   }
+
+  public drawDimensions(rect: Rectangle): void {
+    const offset = 25;
+    const tickSize = 5;
+    
+    this.cx.save();
+    this.cx.beginPath();
+    this.cx.strokeStyle = '#ff00ff';
+    this.cx.fillStyle = '#ff00ff';
+    this.cx.font = 'bold 12px Arial';
+    this.cx.lineWidth = 1;
+
+    const yPos = rect.posY - offset;
+    this.drawLine(rect.posX, yPos, rect.posX + rect.width, yPos);
+    this.drawLine(rect.posX, yPos - tickSize, rect.posX, yPos + tickSize);
+    this.drawLine(rect.posX + rect.width, yPos - tickSize, rect.posX + rect.width, yPos + tickSize);
+    const widthText = `${Math.round(rect.width * 10)} mm`;
+    this.cx.fillText(widthText, rect.posX + (rect.width / 2) - 20, yPos - 8);
+
+    const xPos = rect.posX - offset;
+    this.drawLine(xPos, rect.posY, xPos, rect.posY + rect.height);
+    this.drawLine(xPos - tickSize, rect.posY, xPos + tickSize, rect.posY);
+    this.drawLine(xPos - tickSize, rect.posY + rect.height, xPos + tickSize, rect.posY + rect.height);
+    
+    const heightText = `${Math.round(rect.height * 10)} mm`;
+    this.cx.save();
+    this.cx.translate(xPos - 8, rect.posY + (rect.height / 2) + 20);
+    this.cx.rotate(-Math.PI / 2);
+    this.cx.fillText(heightText, 0, 0);
+    this.cx.restore();
+
+    this.cx.restore();
+  }
 }
 
 
