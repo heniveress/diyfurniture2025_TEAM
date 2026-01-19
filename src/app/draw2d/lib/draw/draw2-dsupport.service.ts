@@ -182,6 +182,17 @@ export class Draw2DSupportService {
     }
     this.cx.restore();
   }
+
+  public exportAsImage(fileName: string = 'my-furniture-plan.png'): void {
+    this.drawExistingElements(false);
+
+    const dataUrl = this.canvas.toDataURL('image/png');
+
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.href = dataUrl;
+    link.click();
+  }
 }
 
 

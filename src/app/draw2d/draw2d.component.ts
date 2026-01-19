@@ -413,4 +413,9 @@ export class Draw2dComponent implements AfterViewInit {
       this.drawRectangles();
     }
   }
+
+  public exportPlan(): void {
+    this.drawSupport.exportAsImage(`furniture-plan${new Date().getTime()}.png`);
+    this.drawRectangles();
+  }
 }

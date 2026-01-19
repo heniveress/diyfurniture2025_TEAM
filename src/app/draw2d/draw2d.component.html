@@ -16,7 +16,12 @@
       <mat-icon>open_with</mat-icon>
     </mat-button-toggle>
   </mat-button-toggle-group>
+
   <div class="draw-action-buttons">
+    <button mat-icon-button (click)="exportPlan()" title="Export as PNG">
+      <mat-icon>save_alt</mat-icon>
+    </button>
+
     <button mat-icon-button (click)="deleteSelectedElement()">
       <mat-icon>delete_forever</mat-icon>
     </button>
