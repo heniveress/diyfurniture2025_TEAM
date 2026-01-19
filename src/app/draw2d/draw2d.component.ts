@@ -17,6 +17,8 @@ import { EventTranslateService } from './lib/eventhandling/event-translate.servi
 import { Draw2DSupportService } from './lib/draw/draw2-dsupport.service';
 import { MatSelectChange } from '@angular/material/select';
 
+import { FurnitureApiService } from './lib/services/furniture-api.service';
+
 interface FrontType {
   value: string;
   viewValue: string;
@@ -40,7 +42,8 @@ export class Draw2dComponent implements AfterViewInit {
     private drawSupport: Draw2DSupportService,
     private eventTranslate: EventTranslateService,
     private eventHandler: EventHandlerManagerService,
-    private modelEvent: ModelchangeService
+    private modelEvent: ModelchangeService,
+    private apiService: FurnitureApiService
   ) {}
 
   @ViewChild('canvas') public canvas?: ElementRef;
@@ -390,11 +393,9 @@ export class Draw2dComponent implements AfterViewInit {
   private highlightElement(element: FurnitureElement): void {
     if (!this.canvas) return;
 
-    // Set red color for highlighting
     this.cx.strokeStyle = '#ff0000';
     this.cx.lineWidth = 3;
 
-    // Always use absolute coordinates so highlights align with drawn elements
     const posX = element.absoluteX;
     const posY = element.absoluteY;
 
@@ -402,7 +403,6 @@ export class Draw2dComponent implements AfterViewInit {
   }
 
   private clearHighlight(): void {
-    // Redraw everything to clear any highlights
     this.drawRectangles();
   }
 
@@ -426,5 +426,49 @@ export class Draw2dComponent implements AfterViewInit {
   public toggleTheme(): void {
     this.drawSupport.toggleTheme();
     this.drawRectangles();
+  }
+
+  public loadProject(): void {
+    this.apiService.getAllFurniture().subscribe({
+      next: (furnitures: any[]) => {
+        if (furnitures && furnitures.length > 0) {
+          const lastSaved = furnitures[furnitures.length - 1];
+          if (lastSaved.layout) {
+            const loadedData = JSON.parse(lastSaved.layout);
+            
+            this.modelManager.loadFurnitures([loadedData]);
+            
+            this.drawRectangles();
+            
+            alert("Plan uploaded!");
+          }
+        }
+      }
+    });
+  }
+
+  public saveProject(): void {
+    const allFurnitures = this.modelManager.getViewFurnitures();
+    if (!allFurnitures || allFurnitures.length === 0) return;
+    
+    const rootFurniture = (allFurnitures[0] as any).model;
+
+    if (rootFurniture) {
+      const payload = {
+        width: rootFurniture.width,
+        heigth: rootFurniture.height,
+        depth: rootFurniture.deepth || 0, 
+        material: rootFurniture.material || 'pine',
+        layout: JSON.stringify(rootFurniture)
+      };
+
+      this.apiService.saveFurniture(payload).subscribe({
+        next: (res) => alert('Plan saved!'),
+        error: (err) => {
+          console.error('Error:', err);
+          alert('Error while saving data.');
+        }
+      });
+    }
   }
 }
