@@ -19,6 +19,10 @@ export class Draw2DSupportService {
   private _cx: CanvasRenderingContext2D | null = null;
   private _canvas: HTMLCanvasElement | null = null;
   private _selectedElement: SelectedFurniture | null = null;
+
+  private selectedElements$ : BehaviorSubject<SelectedFurniture[]> | null = null;
+  private _selectedElements: SelectedFurniture[] = [];
+
 //  private _modelManager: FurnitureModelManagerService | null = null;
 
   private _isDarkMode: boolean = true;
@@ -52,19 +56,37 @@ export class Draw2DSupportService {
     this._cx = canvas.getContext('2d');
   }
 
-  init(selectedElement$ : BehaviorSubject<SelectedFurniture | null>) {
+    init(
+    selectedElement$: BehaviorSubject<SelectedFurniture | null>,
+    selectedElements$?: BehaviorSubject<SelectedFurniture[]>
+  ) {
     this.cx.lineWidth = 1;
     this.cx.lineCap = 'round';
     this.cx.strokeStyle = this._isDarkMode ? '#fff' : '#000';
     this.selectedElement$ = selectedElement$;
-    selectedElement$.subscribe((event)=>{
+
+    selectedElement$.subscribe((event) => {
       this._selectedElement = event;
     });
+
+    if (selectedElements$) {
+      this.selectedElements$ = selectedElements$;
+      selectedElements$.subscribe((arr) => {
+        this._selectedElements = arr ?? [];
+      });
+    }
   }
 
-  public changeSelectedElement(element: SelectedFurniture | null): void{
-    this.selectedElement$?.next(element);
-  }
+
+  public changeSelectedElement(element: SelectedFurniture | null): void {
+      console.log('[SEL] changeSelectedElement CALLED -> this will reset multi if not fixed');
+
+  this._selectedElement = element;
+  this.selectedElement$?.next(element);
+  this.drawExistingElements(true);
+}
+
+
 
   public drawExistingElements(showGrid: boolean = false): void {
     this.cx.save();
@@ -81,6 +103,8 @@ export class Draw2DSupportService {
     for (var furnitureBody of this.modelManager.getViewFurnitures()) {
       furnitureBody.draw(0, 0, this);
     }
+    this.drawSelectionOverlay();
+
   }
 
   private toCanvas(x: number, y: number) {
@@ -200,16 +224,48 @@ export class Draw2DSupportService {
     this.cx.restore();
   }
 
-  public exportAsImage(fileName: string = 'my-furniture-plan.png'): void {
-    this.drawExistingElements(false);
+    public exportAsImage(fileName: string = 'my-furniture-plan.png'): void {
+      this.drawExistingElements(false);
 
-    const dataUrl = this.canvas.toDataURL('image/png');
+      const dataUrl = this.canvas.toDataURL('image/png');
 
-    const link = document.createElement('a');
-    link.download = fileName;
-    link.href = dataUrl;
-    link.click();
+      const link = document.createElement('a');
+      link.download = fileName;
+      link.href = dataUrl;
+      link.click();
+    }
+    public changeSelectedElements(elements: SelectedFurniture[]): void {
+        console.log('[SEL] changeSelectedElements CALLED count=', elements?.length);
+
+  this._selectedElements = elements ?? [];
+  this.selectedElements$?.next(this._selectedElements);
+
+  const active = this._selectedElements.length > 0 ? this._selectedElements[0] : null;
+  this._selectedElement = active;
+  this.selectedElement$?.next(active);
+
+  this.drawExistingElements(true);
+}
+
+    private drawSelectionOverlay(): void {
+    const elems = this._selectedElements.length > 0
+      ? this._selectedElements
+      : (this._selectedElement ? [this._selectedElement] : []);
+
+    if (elems.length === 0) return;
+
+    this.cx.save();
+    this.cx.lineWidth = 2;
+    this.cx.setLineDash([6, 4]);
+    this.cx.strokeStyle = '#ffcc66';
+
+    for (const e of elems) {
+      this.cx.strokeRect(e.posX, e.posY, e.width, e.height);
+    }
+
+    this.cx.restore();
   }
+
 }
 
 

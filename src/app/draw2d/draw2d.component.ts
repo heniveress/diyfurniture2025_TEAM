@@ -9,7 +9,7 @@ import {
   SimpleChanges,
   HostListener,
 } from '@angular/core';
-import { BehaviorSubject, from, fromEvent, Observable, of } from 'rxjs';
+import { BehaviorSubject, from, fromEvent, Observable, of , Subscription} from 'rxjs';
 import { DiyFurnitureMouseEvent } from './lib/model/my-mouse-event.model';
 import { FurnitureBody, FurnitureElement, FurnitureElementType, Rectangle, SelectedFurniture, HorizontalSplit, VerticalSplit } from './lib/model/furniture-body.model';
 import { FurnitureModelManagerService } from './lib/model/furniture-model-manager.service';
@@ -53,6 +53,8 @@ export class Draw2dComponent implements AfterViewInit {
   private cx!: CanvasRenderingContext2D;
 
   private scale: number = 1;
+
+  private keySub?: Subscription;
 
   private _selectedElement: SelectedFurniture | null = null;
 
@@ -165,6 +167,20 @@ export class Draw2dComponent implements AfterViewInit {
     this.drawSupport.init(this.selectedElement$);
 
     this.captureEvents(canvasEl);
+    this.keySub = fromEvent<KeyboardEvent>(window, 'keydown').subscribe((e) => {
+  const isCtrlD = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd';
+  if (!isCtrlD) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const ids = this.modelManager.getSelectedElementIds?.() ?? [];
+  if (ids.length === 0) return;
+
+  this.modelManager.duplicateSelected(10, 10);
+  this.drawRectangles();
+});
+
   }
 
   @HostListener('mousewheel', ['$event'])
