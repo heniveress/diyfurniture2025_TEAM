@@ -14,4 +14,12 @@ export class FurnitureApiService {
   getAllFurniture(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/all`);
   }
+
+  saveProject(projectPayload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/project/save`, projectPayload);
+  }
+
+  getAllProjects(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/project/all`);
+  }
 }

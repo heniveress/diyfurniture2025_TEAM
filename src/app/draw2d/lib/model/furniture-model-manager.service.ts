@@ -525,58 +525,66 @@ export class FurnitureModelManagerService {
     this.refresh(element);
   }
 
-  public loadFurnitures(data: any[]): void {
-    this.rectangles = []; 
+  private viewFurnitures: FurnitureBody[] = [];
 
-    for (const item of data) {
-      const revived = this.reviveFurnitureElement(item);
+// furniture-model-manager.service.ts
+
+public loadFurnitures(items: any[]): void {
+  this.rectangles = []; 
+  this.viewFurnitures = []; 
+  
+  items.forEach(item => {
+    // Létrehozzuk a FurnitureBody-t a mentett adatokkal
+    const body = new FurnitureBody(
+      0, 0, Number(item.width), Number(item.heigth), 
+      item.depth, 18, 
+      FurnitureElementType.BODY, 
+      Number(item.x) || 100, Number(item.y) || 100
+    );
+    
+    if (item.layout) {
+      // Itt hívjuk meg a revive metódust a belső szerkezet visszaállításához
+      const rawLayout = JSON.parse(item.layout);
+      const revivedRoot = this.reviveFurnitureElement(rawLayout, body);
       
-      const body = new FurnitureBody(
-        0, 0, revived.width, revived.height,
-        item.deepth || 500, 
-        item.thickness || 18, 
-        revived.type, 
-        item.x || 50, 
-        item.y || 50, 
-        null, null, item.id
-      );
-
-      body.split = revived.split;
-      body.material = revived.material;
-
-      this.rectangles.push(body);
+      // Átadjuk a visszaállított osztásokat a testnek
+      body.split = revivedRoot.split;
+      body.model = body; 
     }
 
-    this.eventManager.modelChanged();
-  }
+    this.rectangles.push(body);
+    this.viewFurnitures.push(body);
+  });
+  
+  this.eventManager.modelChanged(); 
+}
 
   private reviveFurnitureElement(data: any, parent: FurnitureElement | null = null): FurnitureElement {
-    const element = new FurnitureElement(
-      data.posX, 
-      data.posY, 
-      data.width, 
-      data.height, 
-      data.type,
-      parent
-    );
+  const element = new FurnitureElement(
+    data.posX || 0, 
+    data.posY || 0, 
+    data.width, 
+    data.height, 
+    data.type ?? FurnitureElementType.BODY, // Típus kényszerítése
+    parent
+  );
 
-    element.material = data.material;
-    element.id = data.id;
+  element.material = data.material || 'pine';
+  element.id = data.id || 0;
 
-    if (data.split) {
-      if (data.split.topElement) {
-        const top = this.reviveFurnitureElement(data.split.topElement, element);
-        const bottom = this.reviveFurnitureElement(data.split.bottomElement, element);
-        element.split = new HorizontalSplit(data.split.relativePositionY, top, bottom);
-      } else if (data.split.leftElement) {
-        const left = this.reviveFurnitureElement(data.split.leftElement, element);
-        const right = this.reviveFurnitureElement(data.split.rightElement, element);
-        element.split = new VerticalSplit(data.split.relativePositionX, left, right);
-      }
+  if (data.split) {
+    if (data.split.topElement) {
+      const top = this.reviveFurnitureElement(data.split.topElement, element);
+      const bottom = this.reviveFurnitureElement(data.split.bottomElement, element);
+      element.split = new HorizontalSplit(data.split.relativePositionY, top, bottom);
+    } else if (data.split.leftElement) {
+      const left = this.reviveFurnitureElement(data.split.leftElement, element);
+      const right = this.reviveFurnitureElement(data.split.rightElement, element);
+      element.split = new VerticalSplit(data.split.relativePositionX, left, right);
     }
-
-    return element;
   }
+  return element;
+}
 }
 function convertElem(arg0: any) {
   throw new Error('Function not implemented.');

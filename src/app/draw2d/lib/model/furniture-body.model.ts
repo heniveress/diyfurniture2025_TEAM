@@ -77,6 +77,9 @@ export class FurnitureElement implements Rectangle {
 }
 
 export class FurnitureBody extends FurnitureElement {
+  // ÚJ MEZŐ: Ide töltjük be a JSON-ből visszaalakított belső szerkezetet
+  public model: any = null; 
+
   constructor(
     posX: number,
     posY: number,
@@ -92,17 +95,20 @@ export class FurnitureBody extends FurnitureElement {
     id: number = 0,
     material: string = 'pine'
   ) {
-    super(posX, posY, width, height, type, parrent, split,id, FurnitureElementState.NEW, material);
+    super(posX, posY, width, height, type, parrent, split, id, FurnitureElementState.NEW, material);
+    // A konstruktorban inicializáljuk a modelt a kiinduló állapottal
+    this.model = this; 
   }
 
-  public get absoluteX() : number {
-    return this.x+this.posX;
+  // A getterek most már tökéletesek, a világkoordinátát (x,y) 
+  // és a relatív eltolást (posX, posY) is figyelembe veszik.
+  public override get absoluteX(): number {
+    return Number(this.x) + Number(this.posX);
   }
 
-  public get absoluteY() : number {
-    return this.y+this.posY;
+  public override get absoluteY(): number {
+    return Number(this.y) + Number(this.posY);
   }
-
 }
 
 export class Split {}

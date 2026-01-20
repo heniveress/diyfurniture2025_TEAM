@@ -312,21 +312,57 @@ export class Draw2dComponent implements AfterViewInit {
     this.drawRectangles();
   }
 
-  public drawRectangles(): void {
-    const isMoveMode = this.figureType === 'move';
+  // draw2d.component.ts
 
-    this.drawSupport.drawExistingElements(isMoveMode);
+// draw2d.component.ts
 
-    if (this.selectedElement) {
-      const rect: Rectangle = {
-        posX: this.selectedElement.origin.absoluteX,
-        posY: this.selectedElement.origin.absoluteY,
-        width: this.selectedElement.width,
-        height: this.selectedElement.height
-      };
-      this.drawSupport.drawDimensions(rect);
-    }
+public drawRectangles(): void {
+  // 1. Ellenőrizzük, hogy a natív kontextus (cx) létezik-e
+  if (!this.cx) {
+    console.error("A vászon kontextus (cx) nincs inicializálva!");
+    return;
   }
+
+  // 2. Vászon törlése natív módon
+  // Kiszámoljuk a látható területet a transzformáció figyelembevételével (zoom/scroll)
+  const point = this.toCanvas(this.cx.canvas.width, this.cx.canvas.height);
+  this.cx.clearRect(0, 0, point.x, point.y);
+
+  // 3. Elemek lekérése a modelManager-ből
+  const allFurnitureBodies = this.modelManager.getViewFurnitures();
+  console.log(`Rajzolás folyamatban: ${allFurnitureBodies.length} elem található.`);
+
+  // 4. Elemek kirajzolása a natív Canvas API-val
+  allFurnitureBodies.forEach((body: any) => {
+    // Beállítjuk a rajzolás stílusát (ha a drawSupport nem tenné meg)
+    this.cx.strokeStyle = this.drawSupport.isDarkMode ? '#ffffff' : '#444444';
+    this.cx.lineWidth = this.lineWidth;
+
+    // Kinyerjük a pozíciót (mentett x/y vagy alapértelmezett)
+    const x = body.x !== undefined ? body.x : (body.posX || 0);
+    const y = body.y !== undefined ? body.y : (body.posY || 0);
+
+    // Kirajzoljuk a téglalapot
+    this.cx.strokeRect(x, y, body.width, body.height);
+    
+    // Opcionális: Ha van belső elrendezés (layout), azt a drawSupport rajzolja ki
+  });
+
+  // 5. Meghívjuk a drawSupport-ot a belső részletek és méretek rajzolásához
+  const isMoveMode = this.figureType === 'move';
+  this.drawSupport.drawExistingElements(isMoveMode);
+
+  // 6. Kijelölt elem méretvonalainak rajzolása
+  if (this.selectedElement) {
+    const rect: Rectangle = {
+      posX: this.selectedElement.origin.absoluteX,
+      posY: this.selectedElement.origin.absoluteY,
+      width: this.selectedElement.width,
+      height: this.selectedElement.height
+    };
+    this.drawSupport.drawDimensions(rect);
+  }
+}
 
   public deleteSelectedElement(): void {
     if (this.selectedElement) {
@@ -428,47 +464,88 @@ export class Draw2dComponent implements AfterViewInit {
     this.drawRectangles();
   }
 
-  public loadProject(): void {
-    this.apiService.getAllFurniture().subscribe({
-      next: (furnitures: any[]) => {
-        if (furnitures && furnitures.length > 0) {
-          const lastSaved = furnitures[furnitures.length - 1];
-          if (lastSaved.layout) {
-            const loadedData = JSON.parse(lastSaved.layout);
-            
-            this.modelManager.loadFurnitures([loadedData]);
-            
+  // draw2d.component.ts
+
+// draw2d.component.ts
+
+public loadProject(): void {
+  this.apiService.getAllProjects().subscribe({
+    next: (projects: any[]) => {
+      if (projects && projects.length > 0) {
+        const lastProject = projects[projects.length - 1];
+        console.log('Betöltendő projekt:', lastProject.name);
+
+        if (lastProject.furnitures && lastProject.furnitures.length > 0) {
+          // 1. Átadjuk az adatokat a szerviznek
+          this.modelManager.loadFurnitures(lastProject.furnitures);
+          
+          // 2. Kényszerítjük a vásznat a teljes újrarajzolásra
+          setTimeout(() => {
             this.drawRectangles();
-            
-            alert("Plan uploaded!");
-          }
+            console.log('Rajzolás elindítva a betöltött adatokkal.');
+          }, 100);
         }
       }
-    });
-  }
-
-  public saveProject(): void {
-    const allFurnitures = this.modelManager.getViewFurnitures();
-    if (!allFurnitures || allFurnitures.length === 0) return;
-    
-    const rootFurniture = (allFurnitures[0] as any).model;
-
-    if (rootFurniture) {
-      const payload = {
-        width: rootFurniture.width,
-        heigth: rootFurniture.height,
-        depth: rootFurniture.deepth || 0, 
-        material: rootFurniture.material || 'pine',
-        layout: JSON.stringify(rootFurniture)
-      };
-
-      this.apiService.saveFurniture(payload).subscribe({
-        next: (res) => alert('Plan saved!'),
-        error: (err) => {
-          console.error('Error:', err);
-          alert('Error while saving data.');
-        }
-      });
     }
+  });
+}
+
+public saveProject(): void {
+  const allFurnitures = this.modelManager.getViewFurnitures();
+  if (!allFurnitures || allFurnitures.length === 0) return;
+
+  // Az 'any' használatával engedélyezzük az x és y elérését
+  const furnituresPayload = allFurnitures.map((viewBody: any) => { 
+    const root = viewBody.model;
+    return {
+      width: root.width,
+      heigth: root.height, 
+      depth: root.deepth || 500,
+      material: root.material || 'pine',
+      layout: JSON.stringify(this.prepareDataForSerialization(root)),
+      x: viewBody.x, 
+      y: viewBody.y
+    };
+  });
+
+  const projectPayload = {
+    name: "Terv - " + new Date().toLocaleString(),
+    furnitures: furnituresPayload
+  };
+
+  // Típusok hozzáadása (any), hogy megszűnjön a TS7006 hiba
+  this.apiService.saveProject(projectPayload).subscribe({
+    next: (res: any) => { 
+      alert('Projekt elmentve! ID: ' + res.id);
+    },
+    error: (err: any) => { 
+      console.error('Mentési hiba:', err);
+      alert('Hiba történt a mentés során.');
+    }
+  });
+}
+
+  // ÚJ SEGÉDMETÓDUS: Csak a tiszta adatokat mentjük el, metódusok nélkül
+  private prepareDataForSerialization(element: any): any {
+    const data: any = {
+      posX: element.posX,
+      posY: element.posY,
+      width: element.width,
+      height: element.height,
+      type: element.type,
+      material: element.material
+    };
+
+    if (element.split) {
+      data.split = {
+        relativePositionX: element.split.relativePositionX,
+        relativePositionY: element.split.relativePositionY,
+        topElement: element.split.topElement ? this.prepareDataForSerialization(element.split.topElement) : null,
+        bottomElement: element.split.bottomElement ? this.prepareDataForSerialization(element.split.bottomElement) : null,
+        leftElement: element.split.leftElement ? this.prepareDataForSerialization(element.split.leftElement) : null,
+        rightElement: element.split.rightElement ? this.prepareDataForSerialization(element.split.rightElement) : null
+      };
+    }
+    return data;
   }
 }

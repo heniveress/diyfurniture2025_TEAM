@@ -66,22 +66,30 @@ export class Draw2DSupportService {
     this.selectedElement$?.next(element);
   }
 
-  public drawExistingElements(showGrid: boolean = false): void {
-    this.cx.save();
-    this.cx.setTransform(1, 0, 0, 1, 0, 0);
-    
-    this.cx.fillStyle = this._isDarkMode ? '#2c2c2c' : '#ffffff';
-    this.cx.fillRect(0, 0, this.cx.canvas.width, this.cx.canvas.height);
-    this.cx.restore();
+  // draw2-dsupport.service.ts
 
-    if (showGrid) {
-      this.drawGrid(this.cx.canvas.width, this.cx.canvas.height);
-    }
+// draw2-dsupport.service.ts
 
-    for (var furnitureBody of this.modelManager.getViewFurnitures()) {
-      furnitureBody.draw(0, 0, this);
+public drawExistingElements(isMoveMode: boolean = false): void {
+  // A modelManager-ből a FurnitureBody objektumokat kapjuk meg
+  const elements = this.modelManager.getFurnitureBodies();
+  
+  elements.forEach((body: any) => { // 'any' használata a TS hibák ellen
+    // A FurnitureBody x/y koordinátáit használjuk világkoordinátaként
+    const startX = Number(body.x) || 0;
+    const startY = Number(body.y) || 0;
+
+    this.cx.strokeStyle = this.isDarkMode ? '#ffffff' : '#444444';
+    this.cx.lineWidth = 2;
+    this.cx.strokeRect(startX, startY, body.width, body.height);
+
+    // Belső szerkezet (shelves/splits) rajzolása
+    // Ha a body.model vagy body.split létezik, átadjuk a rekurzív rajzolónak
+    if (body.split) {
+       this.drawRecursive(body, startX, startY);
     }
-  }
+  });
+}
 
   private toCanvas(x: number, y: number) {
     var matrix = this.cx.getTransform();
@@ -210,6 +218,33 @@ export class Draw2DSupportService {
     link.href = dataUrl;
     link.click();
   }
+
+  // draw2-dsupport.service.ts
+
+private drawRecursive(element: any, offsetX: number, offsetY: number): void {
+  if (!element) return;
+
+  // A téglalap kirajzolása (abszolút pozícióban)
+  const x = offsetX + (element.posX || 0);
+  const y = offsetY + (element.posY || 0);
+  
+  this.cx.strokeStyle = this.isDarkMode ? '#ffffff' : '#444444';
+  this.cx.lineWidth = 1;
+  this.cx.strokeRect(x, y, element.width, element.height);
+
+  // Ha van benne osztás, azt is kirajzoljuk
+  if (element.split) {
+    if (element.split.topElement) {
+      // Vízszintes osztás esetén a gyerekeire is meghívjuk
+      this.drawRecursive(element.split.topElement, offsetX, offsetY);
+      this.drawRecursive(element.split.bottomElement, offsetX, offsetY);
+    } else if (element.split.leftElement) {
+      // Függőleges osztás esetén
+      this.drawRecursive(element.split.leftElement, offsetX, offsetY);
+      this.drawRecursive(element.split.rightElement, offsetX, offsetY);
+    }
+  }
+}
 }
 
 
