@@ -428,8 +428,8 @@ export class Draw2dComponent implements AfterViewInit {
     this.drawRectangles();
   }
 
-  public undo(): void {
-    this.modelManager.undo();
+  public async undo(): Promise<void> {
+    await this.modelManager.undo();
     this.selectedElement = null;
     this.selectedElementBody = null;
     this.drawRectangles();

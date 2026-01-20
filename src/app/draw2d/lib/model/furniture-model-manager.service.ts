@@ -351,15 +351,15 @@ export class FurnitureModelManagerService {
   }
 
   private toPlainElement(el: FurnitureElement): any {
-  return {
-    posX: el.posX,
-    posY: el.posY,
-    width: el.width,
-    height: el.height,
-    type: el.type,
-    split: this.toPlainSplit(el.split)
-  };
-}
+    return {
+      posX: el.posX,
+      posY: el.posY,
+      width: el.width,
+      height: el.height,
+      type: el.type,
+      split: this.toPlainSplit(el.split)
+    };
+  }
 
   private toPlainSplit(split: Split | null): any {
     if (!split) return null;
@@ -380,26 +380,54 @@ export class FurnitureModelManagerService {
     };
   }
 
-  public undo(): void {
+  private async persistCurrentStateToDb(): Promise<void> {
+    // 1) wipe DB
+    await this.furnitureService.furnitureBodys.clear();
+    await this.furnitureService.furnitureBodyPosition.clear();
+
+    // 2) rebuild from current in-memory state
+    for (const b of this.rectangles) {
+      const newId = await this.furnitureService.furnitureBodys.add(
+        new Body(
+          'Item',
+          Math.round(b.width * 10),
+          Math.round(b.height * 10),
+          b.deepth,
+          b.thickness,
+          []
+        )
+      );
+
+      b.id = newId;
+
+      await this.furnitureService.furnitureBodyPosition.add(
+        new BodyFrontDetails(newId, b.x, b.y, b.split)
+      );
+
+      this.refresh(b);
+    }
+  }
+
+
+  public async undo(): Promise<void> {
     if (this.undoStack.length === 0) return;
 
     const prev = this.undoStack.pop();
     if (!prev) return;
-
-    // Stop async hydration from re-adding old DB state after undo
+    
     this.allowDbHydration = false;
 
     this.rectangles.length = 0;
 
     for (const obj of prev) {
       const fb = new FurnitureBody(
-        obj.posX ?? 0,
-        obj.posY ?? 0,
+        0,
+        0,
         obj.width,
         obj.height,
         obj.deepth,
         obj.thickness,
-        obj.type ?? FurnitureElementType.BODY,
+        FurnitureElementType.BODY,
         obj.x,
         obj.y,
         null,
@@ -407,13 +435,14 @@ export class FurnitureModelManagerService {
         obj.id
       );
 
-      (fb as any).material = obj.material;
       fb.split = this.converSplit(obj.split, fb);
       this.rectangles.push(fb);
     }
 
+    await this.persistCurrentStateToDb();
     this.eventManager.modelChanged();
   }
+
 
   private containsElement(parent: FurnitureElement, target: FurnitureElement): boolean {
     if (parent === target) return true;
