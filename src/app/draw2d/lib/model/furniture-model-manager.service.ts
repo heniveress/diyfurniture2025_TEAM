@@ -42,6 +42,13 @@ export class FurnitureModelManagerService {
   }
 
   private rectangles: FurnitureBody[] = [];
+
+  private undoStack: any[] = [];
+  private readonly undoLimit = 20;
+
+  // Prevent async constructor-load from overwriting manual state changes (undo/import)
+  private allowDbHydration: boolean = true;
+
   private _cx: CanvasRenderingContext2D | null = null;
 
   private converSplit(obj: any, parent: FurnitureElement) {
@@ -74,6 +81,8 @@ export class FurnitureModelManagerService {
     private eventManager: ModelchangeService
   ) {
     furnitureService.furnitureBodys.toArray().then((allElements) => {
+      if (!this.allowDbHydration) return;
+
       for (let el of allElements) {
         this.findPosition(el.id == undefined ? 0 : el.id)
           .then((pos) => {
@@ -116,6 +125,9 @@ export class FurnitureModelManagerService {
   }
 
   public addFurnitureBody(furnitureBody: FurnitureBody): void {
+    this.pushUndoState();
+    this.allowDbHydration = false;
+
     this.rectangles.push(furnitureBody);
       const idBody = this.furnitureService.furnitureBodys.add(
           new Body('Item', Math.round(furnitureBody.width*10), Math.round(furnitureBody.height*10),furnitureBody.deepth,furnitureBody.thickness,[])
@@ -272,6 +284,9 @@ export class FurnitureModelManagerService {
   }
 
   public removeElement(element: FurnitureElement): void {
+    this.pushUndoState();
+    this.allowDbHydration = false;
+
     // Find the element in the rectangles array
     const index = this.rectangles.findIndex(rect => rect === element || this.containsElement(rect, element));
 
@@ -293,6 +308,9 @@ export class FurnitureModelManagerService {
   }
 
   public clearAllElements(): void {
+    this.pushUndoState();
+    this.allowDbHydration = false;
+
     // Clear all elements from the rectangles array
     this.rectangles.length = 0;
 
@@ -301,6 +319,99 @@ export class FurnitureModelManagerService {
     this.furnitureService.furnitureBodyPosition.clear();
 
     // Notify about the change
+    this.eventManager.modelChanged();
+  }
+
+  private pushUndoState(): void {
+    // We store a JSON-friendly snapshot (plain objects)
+    const snapshot = this.rectangles.map(b => this.toPlainBody(b));
+    this.undoStack.push(snapshot);
+
+    if (this.undoStack.length > this.undoLimit) {
+      this.undoStack.shift();
+    }
+  }
+
+  // Convert current model tree into plain objects
+  private toPlainBody(body: FurnitureBody): any {
+    return {
+      id: body.id,
+      x: body.x,
+      y: body.y,
+      posX: body.posX,
+      posY: body.posY,
+      width: body.width,
+      height: body.height,
+      deepth: body.deepth,
+      thickness: body.thickness,
+      material: (body as any).material,
+      type: body.type,
+      split: this.toPlainSplit(body.split)
+    };
+  }
+
+  private toPlainElement(el: FurnitureElement): any {
+  return {
+    posX: el.posX,
+    posY: el.posY,
+    width: el.width,
+    height: el.height,
+    type: el.type,
+    split: this.toPlainSplit(el.split)
+  };
+}
+
+  private toPlainSplit(split: Split | null): any {
+    if (!split) return null;
+
+    if (split instanceof HorizontalSplit) {
+      return {
+        relativePositionY: split.relativePositionY,
+        topElement: this.toPlainElement(split.topElement),
+        bottomElement: this.toPlainElement(split.bottomElement),
+      };
+    }
+
+    // VerticalSplit
+    return {
+      relativePositionX: (split as VerticalSplit).relativePositionX,
+      leftElement: this.toPlainElement((split as VerticalSplit).leftElement),
+      rightElement: this.toPlainElement((split as VerticalSplit).rightElement),
+    };
+  }
+
+  public undo(): void {
+    if (this.undoStack.length === 0) return;
+
+    const prev = this.undoStack.pop();
+    if (!prev) return;
+
+    // Stop async hydration from re-adding old DB state after undo
+    this.allowDbHydration = false;
+
+    this.rectangles.length = 0;
+
+    for (const obj of prev) {
+      const fb = new FurnitureBody(
+        obj.posX ?? 0,
+        obj.posY ?? 0,
+        obj.width,
+        obj.height,
+        obj.deepth,
+        obj.thickness,
+        obj.type ?? FurnitureElementType.BODY,
+        obj.x,
+        obj.y,
+        null,
+        null,
+        obj.id
+      );
+
+      (fb as any).material = obj.material;
+      fb.split = this.converSplit(obj.split, fb);
+      this.rectangles.push(fb);
+    }
+
     this.eventManager.modelChanged();
   }
 
@@ -323,6 +434,9 @@ export class FurnitureModelManagerService {
   // Resize utilities and helpers
 
   public resizeElementHeightPreservingPercent(element: FurnitureElement, newHeight: number): void {
+    this.pushUndoState();
+    this.allowDbHydration = false;
+    
     const body = this.findBody(element);
     if (body.height === 0 || newHeight <= 0) {
       return;
@@ -342,6 +456,9 @@ export class FurnitureModelManagerService {
     if (newWidth <= 0) {
       return;
     }
+
+    this.pushUndoState();
+    this.allowDbHydration = false;
 
     const context = this.findNearestVerticalSplitContext(element);
 
@@ -497,6 +614,9 @@ export class FurnitureModelManagerService {
 
   public generateShelves(element: FurnitureElement, shelfCount: number): void {
     if(!element || shelfCount <= 0) return;
+
+    this.pushUndoState();
+    this.allowDbHydration = false;
 
     let currentParent = element;
 
