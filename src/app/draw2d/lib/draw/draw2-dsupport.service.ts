@@ -66,21 +66,25 @@ export class Draw2DSupportService {
     this.selectedElement$?.next(element);
   }
 
-  public drawExistingElements(showGrid: boolean = false): void {
-    this.cx.save();
-    this.cx.setTransform(1, 0, 0, 1, 0, 0);
+  public drawExistingElements(isMoveMode: boolean = false): void {
+    const elements = this.modelManager.getFurnitureBodies();
     
-    this.cx.fillStyle = this._isDarkMode ? '#2c2c2c' : '#ffffff';
-    this.cx.fillRect(0, 0, this.cx.canvas.width, this.cx.canvas.height);
-    this.cx.restore();
+    elements.forEach(body => {
+      // const startX = Number(body.x) || 0;
+      // const startY = Number(body.y) || 0;
+      this.cx.save();
+      this.cx.translate(body.x, body.y);
 
-    if (showGrid) {
-      this.drawGrid(this.cx.canvas.width, this.cx.canvas.height);
-    }
+      this.cx.strokeStyle = this.isDarkMode ? '#ffffff' : '#444444';
+      this.cx.lineWidth = 2;
+      this.cx.strokeRect(0, 0, body.width, body.height);
 
-    for (var furnitureBody of this.modelManager.getViewFurnitures()) {
-      furnitureBody.draw(0, 0, this);
-    }
+      // Belső szerkezet (shelves/splits) rajzolása
+      // Ha a body.model vagy body.split létezik, átadjuk a rekurzív rajzolónak
+      if (body.split) {
+        this.drawRecursive(body, 0, 0);
+      }
+    });
   }
 
   private toCanvas(x: number, y: number) {
@@ -209,6 +213,27 @@ export class Draw2DSupportService {
     link.download = fileName;
     link.href = dataUrl;
     link.click();
+  }
+
+  private drawRecursive(element: any, offsetX: number, offsetY: number): void {
+    if (!element) return;
+
+    const x = offsetX + (element.posX || 0);
+    const y = offsetY + (element.posY || 0);
+    
+    this.cx.strokeStyle = this.isDarkMode ? '#ffffff' : '#444444';
+    this.cx.lineWidth = 1;
+    this.cx.strokeRect(x, y, element.width, element.height);
+
+    if (element.split) {
+      if (element.split.topElement) {
+        this.drawRecursive(element.split.topElement, offsetX, offsetY);
+        this.drawRecursive(element.split.bottomElement, offsetX, offsetY);
+      } else if (element.split.leftElement) {
+        this.drawRecursive(element.split.leftElement, offsetX, offsetY);
+        this.drawRecursive(element.split.rightElement, offsetX, offsetY);
+      }
+    }
   }
 }
 
