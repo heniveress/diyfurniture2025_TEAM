@@ -15,6 +15,7 @@ import { Injectable } from '@angular/core';
 import { FurnituremodelService } from 'src/app/furnituremodel/furnituremodel.service';
 import { Body } from 'src/app/furnituremodel/furnituremodels';
 import { ModelchangeService } from '../eventhandling/modelchange.service';
+import { Draw2DSupportService } from '../draw/draw2-dsupport.service';
 
 @Injectable()
 export class FurnitureModelManagerService {
@@ -715,6 +716,58 @@ public getSelectedElements(): FurnitureElement[] {
     this.refresh(element);
   }
 
+  public loadFurnitures(data: any[]): void {
+    this.rectangles = []; 
+
+    for (const item of data) {
+      const revived = this.reviveFurnitureElement(item);
+      
+      const body = new FurnitureBody(
+        0, 0, revived.width, revived.height,
+        item.deepth || 500, 
+        item.thickness || 18, 
+        revived.type, 
+        item.x || 50, 
+        item.y || 50, 
+        null, null, item.id
+      );
+
+      body.split = revived.split;
+      body.material = revived.material;
+
+      this.rectangles.push(body);
+    }
+
+    this.eventManager.modelChanged();
+  }
+
+  private reviveFurnitureElement(data: any, parent: FurnitureElement | null = null): FurnitureElement {
+    const element = new FurnitureElement(
+      data.posX, 
+      data.posY, 
+      data.width, 
+      data.height, 
+      data.type,
+      parent
+    );
+
+    element.material = data.material;
+    element.id = data.id;
+
+    if (data.split) {
+      if (data.split.topElement) {
+        const top = this.reviveFurnitureElement(data.split.topElement, element);
+        const bottom = this.reviveFurnitureElement(data.split.bottomElement, element);
+        element.split = new HorizontalSplit(data.split.relativePositionY, top, bottom);
+      } else if (data.split.leftElement) {
+        const left = this.reviveFurnitureElement(data.split.leftElement, element);
+        const right = this.reviveFurnitureElement(data.split.rightElement, element);
+        element.split = new VerticalSplit(data.split.relativePositionX, left, right);
+      }
+    }
+
+    return element;
+  }
   public findElementById(id: number): FurnitureElement | null {
   if (id === 0) return null;
 

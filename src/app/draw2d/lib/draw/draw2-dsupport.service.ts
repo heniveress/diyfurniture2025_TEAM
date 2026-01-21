@@ -77,6 +77,25 @@ export class Draw2DSupportService {
     }
   }
 
+  public drawExistingElements(isMoveMode: boolean = false): void {
+    const elements = this.modelManager.getFurnitureBodies();
+    
+    elements.forEach(body => {
+      // const startX = Number(body.x) || 0;
+      // const startY = Number(body.y) || 0;
+      this.cx.save();
+      this.cx.translate(body.x, body.y);
+
+      this.cx.strokeStyle = this.isDarkMode ? '#ffffff' : '#444444';
+      this.cx.lineWidth = 2;
+      this.cx.strokeRect(0, 0, body.width, body.height);
+
+      // Belső szerkezet (shelves/splits) rajzolása
+      // Ha a body.model vagy body.split létezik, átadjuk a rekurzív rajzolónak
+      if (body.split) {
+        this.drawRecursive(body, 0, 0);
+      }
+    });
 
   public changeSelectedElement(element: SelectedFurniture | null): void {
       console.log('[SEL] changeSelectedElement CALLED -> this will reset multi if not fixed');
@@ -266,6 +285,26 @@ export class Draw2DSupportService {
     this.cx.restore();
   }
 
+  private drawRecursive(element: any, offsetX: number, offsetY: number): void {
+    if (!element) return;
+
+    const x = offsetX + (element.posX || 0);
+    const y = offsetY + (element.posY || 0);
+    
+    this.cx.strokeStyle = this.isDarkMode ? '#ffffff' : '#444444';
+    this.cx.lineWidth = 1;
+    this.cx.strokeRect(x, y, element.width, element.height);
+
+    if (element.split) {
+      if (element.split.topElement) {
+        this.drawRecursive(element.split.topElement, offsetX, offsetY);
+        this.drawRecursive(element.split.bottomElement, offsetX, offsetY);
+      } else if (element.split.leftElement) {
+        this.drawRecursive(element.split.leftElement, offsetX, offsetY);
+        this.drawRecursive(element.split.rightElement, offsetX, offsetY);
+      }
+    }
+  }
 }
 
 
