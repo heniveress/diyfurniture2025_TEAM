@@ -10,6 +10,7 @@ export enum FurnitureElementType {
   DRAWER,
   DOOR,
   UNKNOWN,
+  SHELF
 }
 
 export enum FurnitureElementState {
