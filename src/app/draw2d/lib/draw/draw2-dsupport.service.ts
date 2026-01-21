@@ -77,25 +77,26 @@ export class Draw2DSupportService {
     }
   }
 
-  public drawExistingElements(isMoveMode: boolean = false): void {
-    const elements = this.modelManager.getFurnitureBodies();
+  // public drawExistingElements(isMoveMode: boolean = false): void {
+  //   const elements = this.modelManager.getFurnitureBodies();
     
-    elements.forEach(body => {
-      // const startX = Number(body.x) || 0;
-      // const startY = Number(body.y) || 0;
-      this.cx.save();
-      this.cx.translate(body.x, body.y);
+  //   elements.forEach(body => {
+  //     // const startX = Number(body.x) || 0;
+  //     // const startY = Number(body.y) || 0;
+  //     this.cx.save();
+  //     this.cx.translate(body.x, body.y);
 
-      this.cx.strokeStyle = this.isDarkMode ? '#ffffff' : '#444444';
-      this.cx.lineWidth = 2;
-      this.cx.strokeRect(0, 0, body.width, body.height);
+  //     this.cx.strokeStyle = this.isDarkMode ? '#ffffff' : '#444444';
+  //     this.cx.lineWidth = 2;
+  //     this.cx.strokeRect(0, 0, body.width, body.height);
 
-      // Belső szerkezet (shelves/splits) rajzolása
-      // Ha a body.model vagy body.split létezik, átadjuk a rekurzív rajzolónak
-      if (body.split) {
-        this.drawRecursive(body, 0, 0);
-      }
-    });
+  //     // Belső szerkezet (shelves/splits) rajzolása
+  //     // Ha a body.model vagy body.split létezik, átadjuk a rekurzív rajzolónak
+  //     if (body.split) {
+  //       this.drawRecursive(body, 0, 0);
+  //     }
+  //   });
+  // }
 
   public changeSelectedElement(element: SelectedFurniture | null): void {
       console.log('[SEL] changeSelectedElement CALLED -> this will reset multi if not fixed');

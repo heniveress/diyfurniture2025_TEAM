@@ -486,6 +486,8 @@ export class Draw2dComponent implements AfterViewInit {
         }
       });
     }
+  }
+  
   public async undo(): Promise<void> {
     await this.modelManager.undo();
     this.selectedElement = null;
