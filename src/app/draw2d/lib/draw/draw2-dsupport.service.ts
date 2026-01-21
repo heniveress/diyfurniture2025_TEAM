@@ -96,6 +96,7 @@ export class Draw2DSupportService {
         this.drawRecursive(body, 0, 0);
       }
     });
+  }
 
   public changeSelectedElement(element: SelectedFurniture | null): void {
       console.log('[SEL] changeSelectedElement CALLED -> this will reset multi if not fixed');
@@ -107,24 +108,24 @@ export class Draw2DSupportService {
 
 
 
-  public drawExistingElements(showGrid: boolean = false): void {
-    this.cx.save();
-    this.cx.setTransform(1, 0, 0, 1, 0, 0);
+  // public drawExistingElements(showGrid: boolean = false): void {
+  //   this.cx.save();
+  //   this.cx.setTransform(1, 0, 0, 1, 0, 0);
     
-    this.cx.fillStyle = this._isDarkMode ? '#2c2c2c' : '#ffffff';
-    this.cx.fillRect(0, 0, this.cx.canvas.width, this.cx.canvas.height);
-    this.cx.restore();
+  //   this.cx.fillStyle = this._isDarkMode ? '#2c2c2c' : '#ffffff';
+  //   this.cx.fillRect(0, 0, this.cx.canvas.width, this.cx.canvas.height);
+  //   this.cx.restore();
 
-    if (showGrid) {
-      this.drawGrid(this.cx.canvas.width, this.cx.canvas.height);
-    }
+  //   if (showGrid) {
+  //     this.drawGrid(this.cx.canvas.width, this.cx.canvas.height);
+  //   }
 
-    for (var furnitureBody of this.modelManager.getViewFurnitures()) {
-      furnitureBody.draw(0, 0, this);
-    }
-    this.drawSelectionOverlay();
+  //   for (var furnitureBody of this.modelManager.getViewFurnitures()) {
+  //     furnitureBody.draw(0, 0, this);
+  //   }
+  //   this.drawSelectionOverlay();
 
-  }
+  // }
 
   private toCanvas(x: number, y: number) {
     var matrix = this.cx.getTransform();
