@@ -6,7 +6,7 @@ describe('Draw2DSupportService', () => {
   let service: Draw2DSupportService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({providers: [Draw2DSupportService],});
     service = TestBed.inject(Draw2DSupportService);
   });
 

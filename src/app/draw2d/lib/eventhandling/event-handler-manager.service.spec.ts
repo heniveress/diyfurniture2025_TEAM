@@ -6,7 +6,7 @@ describe('EventHandlerManagerService', () => {
   let service: EventHandlerManagerService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({providers: [EventHandlerManagerService],});
     service = TestBed.inject(EventHandlerManagerService);
   });
 
