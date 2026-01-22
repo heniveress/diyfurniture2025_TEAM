@@ -9,7 +9,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "bdd": "set TS_NODE_PROJECT=tsconfig.cucumber.json&& cucumber-js -p default",
-    "bdd:e2e": "set TS_NODE_PROJECT=tsconfig.cucumber.json&& cucumber-js -p e2e"
+    "bdd:e2e": "set TS_NODE_PROJECT=tsconfig.cucumber.json&& cucumber-js -p e2e",
+    "test:jasmin": "bash -lc 'export PUPPETEER_CACHE_DIR=\"$(pwd)/.cache/puppeteer\"; if [ ! -f \"$(node -e \"process.stdout.write(require(\\\"puppeteer\\\").executablePath())\")\" ]; then npx puppeteer browsers install chrome; fi; export CHROME_BIN=\"$(node -e \"process.stdout.write(require(\\\"puppeteer\\\").executablePath())\")\"; ng test --watch=false --browsers=ChromeHeadless --include src/app/draw2d/lib/model/furniture-model-manager.service.spec.ts'"
   },
   "private": true,
   "dependencies": {
@@ -47,6 +48,7 @@
     "karma-coverage": "~2.0.3",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "~1.7.0",
+    "puppeteer": "^24.35.0",
     "selenium-webdriver": "^4.36.0",
     "tree-kill": "^1.2.2",
     "ts-node": "^10.9.2",
