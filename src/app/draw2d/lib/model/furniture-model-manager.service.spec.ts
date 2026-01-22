@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { FurnitureModelManagerService } from './furniture-model-manager.service';
+import { FurnitureModelManagerService } from 'src/app/draw2d/lib/model/furniture-model-manager.service';
 import { FurnituremodelService } from 'src/app/furnituremodel/furnituremodel.service';
-import { ModelchangeService } from '../eventhandling/modelchange.service';
-import { FurnitureBody, FurnitureElementType } from './furniture-body.model';
+import { ModelchangeService } from 'src/app/draw2d/lib/eventhandling/modelchange.service';
+import { FurnitureBody, FurnitureElementType } from 'src/app/draw2d/lib/model/furniture-body.model';
 
 /**
  * Unit tests for FurnitureModelManagerService (Undo feature).

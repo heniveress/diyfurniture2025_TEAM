@@ -10,7 +10,7 @@
     "test": "ng test",
     "bdd": "set TS_NODE_PROJECT=tsconfig.cucumber.json&& cucumber-js -p default",
     "bdd:e2e": "set TS_NODE_PROJECT=tsconfig.cucumber.json&& cucumber-js -p e2e",
-    "test:jasmin": "bash -lc 'export PUPPETEER_CACHE_DIR=\"$(pwd)/.cache/puppeteer\"; if [ ! -f \"$(node -e \"process.stdout.write(require(\\\"puppeteer\\\").executablePath())\")\" ]; then npx puppeteer browsers install chrome; fi; export CHROME_BIN=\"$(node -e \"process.stdout.write(require(\\\"puppeteer\\\").executablePath())\")\"; ng test --watch=false --browsers=ChromeHeadless --include src/app/draw2d/lib/model/furniture-model-manager.service.spec.ts'"
+    "test:heni": "bash -lc 'export PUPPETEER_CACHE_DIR=\"$(pwd)/.cache/puppeteer\"; export CHROME_BIN=\"$(node -e \"process.stdout.write(require(\\\"puppeteer\\\").executablePath())\")\"; ng test --watch=false --browsers=ChromeHeadless --include \"src/app/draw2d/draw2d.component.spec.ts\" --include \"src/app/draw2d/lib/model/furniture-model-manager.service.spec.ts\"'"
   },
   "private": true,
   "dependencies": {
